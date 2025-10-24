@@ -5,20 +5,101 @@ local config = {
   disable_phonk = false,
   sound_enabled = true,
   image_enabled = true,
+  volume = 50,
 }
+
+local audio_player = nil
 
 local function get_plugin_path()
   return vim.fn.stdpath('data') .. '/lazy/brainrot.nvim'
 end
 
+local function is_cmd_available(cmd)
+  if jit.os == 'Windows' then
+    return os.execute(string.format('where %s >nul 2>&1', cmd)) == 0
+  else
+    return os.execute(string.format('command -v %s >/dev/null 2>&1', cmd)) == 0
+  end
+end
+
+local function detect_audio_player()
+  local os = jit.os
+
+  if os == 'Linux' then
+    if is_cmd_available('paplay') then return 'paplay' end
+    if is_cmd_available('ffplay') then return 'ffplay' end
+    if is_cmd_available('mpv') then return 'mpv' end
+  elseif os == 'OSX' then
+    if is_cmd_available('afplay') then return 'afplay' end
+    if is_cmd_available('ffplay') then return 'ffplay' end
+    if is_cmd_available('mpv') then return 'mpv' end
+  elseif os == 'Windows' then
+    if is_cmd_available('ffplay') then return 'ffplay' end
+    if is_cmd_available('mpv') then return 'mpv' end
+  else
+    vim.notify("Unsupported OS '" .. os .. "' for audio playback", vim.log.levels.ERROR)
+  end
+
+  return nil
+end
+
+local function play_with_player(player, path, volume, timeout)
+  local cmd
+  local args = {}
+  if player == "paplay" then
+    cmd = "paplay"
+    table.insert(args, "--volume=" .. math.floor((volume / 100) * 65536))
+    table.insert(args, path)
+  elseif player == "ffplay" then
+    cmd = "ffplay"
+    table.insert(args, "-autoexit")
+    table.insert(args, "-nodisp")
+    table.insert(args, "-v")
+    table.insert(args, "quiet")
+    table.insert(args, "-volume")
+    table.insert(args, tostring(volume))
+    table.insert(args, path)
+  elseif player == "afplay" then
+    cmd = "afplay"
+    table.insert(args, "-v")
+    table.insert(args, tostring(volume / 100))
+    table.insert(args, path)
+  elseif player == "mpv" then
+    cmd = "mpv"
+    table.insert(args, "--no-video")
+    table.insert(args, "--no-terminal")
+    table.insert(args, "--no-config")
+    table.insert(args, "--volume=" .. volume)
+    table.insert(args, path)
+  else
+    vim.notify(player .. " isn't supported", vim.log.levels.ERROR)
+    return
+  end
+
+  if vim.fn.executable(cmd) == 0 then
+    vim.notify(player .. " not found.", vim.log.levels.ERROR)
+    return
+  end
+
+  table.insert(args, 1, cmd)
+
+  if timeout and jit.os ~= 'Windows' then
+    table.insert(args, 1, tostring(timeout))
+    table.insert(args, 1, "timeout")
+  end
+
+  vim.system(args, { detach = true })
+  vim.notify(table.concat(args, " "), vim.log.levels.DEBUG)
+end
+
 local function playBoom()
-  if not config.sound_enabled then return end
+  if not config.sound_enabled or not audio_player then return end
   local media_path = get_plugin_path() .. '/boom.ogg'
-  vim.system({ 'paplay', media_path, '--volume=35536' }, { detach = true })
+  play_with_player(audio_player, media_path, config.volume, nil)
 end
 
 local function playRandomPhonk()
-  if not config.sound_enabled then return end
+  if not config.sound_enabled or not audio_player then return end
   local media_path = get_plugin_path() .. '/phonks'
   local glob_pattern = media_path .. '/*'
   local files = vim.fn.glob(glob_pattern, false, true)
@@ -28,7 +109,7 @@ local function playRandomPhonk()
   end
   local idx = math.random(#files)
   local path = files[idx]
-  vim.system({ 'timeout', tostring(config.phonk_time), 'paplay', path, '--volume=35536' }, { detach = true })
+  play_with_player(audio_player, path, config.volume, config.phonk_time)
 end
 
 local function showRandomImage()
@@ -146,6 +227,24 @@ end
 function M.setup(opts)
   opts = opts or {}
   config = vim.tbl_extend('force', config, opts)
+  if config.phonk_time < 0.0 then
+    vim.notify("brainrot.nvim: phonk_time cannot be negative. Setting to 0.", vim.log.levels.WARN)
+    config.phonk_time = 0.0
+  end
+
+  if config.volume < 0 or config.volume > 100 then
+    vim.notify("brainrot.nvim: Volume must be between 0 and 100. Setting to 0.", vim.log.levels.WARN)
+    config.volume = 0
+  end
+
+  audio_player = detect_audio_player()
+
+  if config.sound_enabled and not audio_player then
+    vim.notify(
+      "brainrot.nvim: No audio player found. Install ffplay, mpv, paplay (Linux), or afplay (macOS).",
+      vim.log.levels.WARN
+    )
+  end
 
   vim.api.nvim_create_autocmd('ModeChanged', {
     pattern = 'n:*',
