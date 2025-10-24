@@ -11,7 +11,8 @@ local config = {
 local audio_player = nil
 
 local function get_plugin_path()
-  return vim.fn.stdpath('data') .. '/lazy/brainrot.nvim'
+  local script_path = debug.getinfo(1, 'S').source:sub(2)
+  return vim.fn.fnamemodify(script_path, ':h:h:h')
 end
 
 local function is_cmd_available(cmd)
@@ -89,7 +90,6 @@ local function play_with_player(player, path, volume, timeout)
   end
 
   vim.system(args, { detach = true })
-  vim.notify(table.concat(args, " "), vim.log.levels.DEBUG)
 end
 
 local function playBoom()
@@ -104,7 +104,7 @@ local function playRandomPhonk()
   local glob_pattern = media_path .. '/*'
   local files = vim.fn.glob(glob_pattern, false, true)
   if #files == 0 then
-    vim.notify("Error: No sound files found in phonks/ directory.", vim.log.levels.ERROR)
+    vim.notify("Error: No sound files found in " .. media_path .. " directory.", vim.log.levels.ERROR)
     return
   end
   local idx = math.random(#files)
@@ -118,7 +118,7 @@ local function showRandomImage()
   local glob_pattern = media_path .. '/*.png'
   local files = vim.fn.glob(glob_pattern, false, true)
   if #files == 0 then
-    vim.notify("Error: No PNG files found in images/ directory.", vim.log.levels.ERROR)
+    vim.notify("Error: No PNG files found in " .. media_path .. " directory.", vim.log.levels.ERROR)
     return
   end
 
