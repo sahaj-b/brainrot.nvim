@@ -31,6 +31,8 @@ Vine boom when a new error appears. Phonk + dim overlay + meme image when you cl
 - Only triggers in Normal mode (won’t fire while you’re typing). It updates on `DiagnosticChanged` and on mode changes into/out of Normal.
 
 ## Commands
-- `:Brainrot boom` — trigger the vine boom sound now
-- `:Brainrot phonk` — trigger the overlay + random phonk now
+- `:Brainrot boom`: trigger the vine boom sound now
+- `:Brainrot phonk`: trigger the overlay + random phonk now
 
+## Known Issues
+- When pressing `<CR>` (Enter) inside a bracket pair like `{|}` to auto-expand into a block (when using an autopair plugin), it will detect errors and play vine boom. Workaround is to disable the auto-expand (eg: `map_cr = false` in `nvim-autopairs`).
