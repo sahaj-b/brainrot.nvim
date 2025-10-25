@@ -166,6 +166,15 @@ local function update_prev_errors()
   vim.b.prev_error_keys = current_errors
 end
 
+local function blockInput()
+  local ns_id = vim.on_key(function(_, _)
+    return ""
+  end)
+  vim.defer_fn(function()
+    vim.on_key(nil, ns_id)
+  end, config.phonk_time * 1000)
+end
+
 local function phonk()
   local buf = vim.api.nvim_create_buf(false, true)
   vim.bo[buf].bufhidden = 'wipe'
@@ -184,6 +193,7 @@ local function phonk()
   vim.api.nvim_set_hl(0, 'BrainrotDimOverlay', { bg = '#000000' })
   vim.wo[win].winhl = 'Normal:BrainrotDimOverlay'
 
+  blockInput()
   showRandomImage()
   playRandomPhonk()
   vim.defer_fn(function()
