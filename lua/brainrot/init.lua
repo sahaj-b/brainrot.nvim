@@ -9,6 +9,7 @@ local config = {
 }
 
 local audio_player = nil
+local is_phonk_playing = false
 
 local function get_plugin_path()
   local script_path = debug.getinfo(1, 'S').source:sub(2)
@@ -99,17 +100,22 @@ local function playBoom()
 end
 
 local function playRandomPhonk()
-  if not config.sound_enabled or not audio_player then return end
-  local media_path = get_plugin_path() .. '/phonks'
-  local glob_pattern = media_path .. '/*'
-  local files = vim.fn.glob(glob_pattern, false, true)
-  if #files == 0 then
-    vim.notify("Error: No sound files found in " .. media_path .. " directory.", vim.log.levels.ERROR)
-    return
-  end
-  local idx = math.random(#files)
-  local path = files[idx]
-  play_with_player(audio_player, path, config.volume, config.phonk_time)
+   if is_phonk_playing or not config.sound_enabled or not audio_player then return end
+   is_phonk_playing = true
+   local media_path = get_plugin_path() .. '/phonks'
+   local glob_pattern = media_path .. '/*'
+   local files = vim.fn.glob(glob_pattern, false, true)
+   if #files == 0 then
+     vim.notify("Error: No sound files found in " .. media_path .. " directory.", vim.log.levels.ERROR)
+     is_phonk_playing = false
+     return
+   end
+   local idx = math.random(#files)
+   local path = files[idx]
+   play_with_player(audio_player, path, config.volume, config.phonk_time)
+   vim.defer_fn(function()
+     is_phonk_playing = false
+   end, config.phonk_time * 1000)
 end
 
 local function showRandomImage()
