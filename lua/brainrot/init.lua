@@ -122,30 +122,26 @@ local function showRandomImage()
     return
   end
 
-  local idx = math.random(#files)
-  local path = files[idx]
-  local w, h = 30, 30
-  local wh = vim.api.nvim_win_get_height(0)
-  local total_lines = vim.api.nvim_buf_line_count(0)
-  local top_line = vim.fn.line('w0')
-  local visible_y = math.floor(wh * 0.6)
-  local buffer_y = top_line + visible_y - 1
-  buffer_y = math.max(1, math.min(buffer_y, total_lines))
-
-  local x = math.floor((vim.o.columns - w) / 2)
-
   local ok, image_module = pcall(require, 'image')
   if not ok then
     vim.notify("image.nvim not installed. Install it to see images.", vim.log.levels.WARN)
     return
   end
 
+  local idx = math.random(#files)
+  local path = files[idx]
+  local w, h = 30, 30
+  local wh = vim.api.nvim_win_get_height(0)
+  local x = math.floor((vim.o.columns - w) / 2)
+  local y = math.floor(wh * 0.6)
+
+
   local img = image_module.from_file(path, {
     x = x,
-    y = buffer_y,
+    y = y,
     width = w,
     height = h,
-    window = vim.api.nvim_get_current_win(),
+    window = nil,
   })
 
   if not img then

@@ -34,6 +34,3 @@ Vine boom when a new error appears. Phonk + dim overlay + meme image when you cl
 - `:Brainrot boom` — trigger the vine boom sound now
 - `:Brainrot phonk` — trigger the overlay + random phonk now
 
-
-## Issues
-Image positioning is kinda funky rn (probably `image.nvim`'s issue)
