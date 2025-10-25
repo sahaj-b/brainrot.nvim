@@ -2,6 +2,10 @@
 
 Vine boom when a new error appears. Phonk + dim overlay + meme image when you clear the last error.
 
+
+https://github.com/user-attachments/assets/e68578ee-69e5-4fc6-b45a-493a98e8d225
+
+
 ## Requirements
 - Neovim 0.9+
 - Audio player
@@ -36,3 +40,6 @@ Vine boom when a new error appears. Phonk + dim overlay + meme image when you cl
 
 ## Known Issues
 - When pressing `<CR>` (Enter) inside a bracket pair like `{|}` to auto-expand into a block (when using an autopair plugin), it will detect errors and play vine boom. Workaround is to disable the auto-expand (eg: `map_cr = false` in `nvim-autopairs`).
+
+## ...WHY?
+[coz why not](https://x.com/sahaj__b/status/1981749009350811966)
