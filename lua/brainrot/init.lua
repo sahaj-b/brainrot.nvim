@@ -17,11 +17,7 @@ local function get_plugin_path()
 end
 
 local function is_cmd_available(cmd)
-  if jit.os == 'Windows' then
-    return os.execute(string.format('where %s >nul 2>&1', cmd)) == 0
-  else
-    return os.execute(string.format('command -v %s >/dev/null 2>&1', cmd)) == 0
-  end
+  return vim.fn.executable(cmd) == 1
 end
 
 local function detect_audio_player()
