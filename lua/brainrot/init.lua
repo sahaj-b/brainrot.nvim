@@ -2,7 +2,7 @@ local M = {}
 
 local config = {
   phonk_time = 2.5,
-  min_error_duration = 0,
+  min_error_duration = 0.5,
   disable_phonk = false,
   sound_enabled = true,
   image_enabled = true,
@@ -13,6 +13,7 @@ local config = {
   image_dir = nil,
   block_input = false,
   dim_level = 60,
+  lsp_wide = false,
 }
 
 local audio_player = nil
@@ -167,16 +168,46 @@ local function showRandomImage()
 end
 
 local function get_diag_key(diag)
-  return string.format("%s:%s:%s", diag.code or '', diag.source or '', diag.message or '')
+  return string.format("%s:%s:%s:%s", diag.bufnr or '', diag.code or '', diag.source or '', diag.message or '')
+end
+
+local function get_prev_keys()
+  return config.lsp_wide and (vim.g.prev_error_keys or {}) or (vim.b.prev_error_keys or {})
+end
+
+local function set_prev_keys(keys)
+  if config.lsp_wide then
+    vim.g.prev_error_keys = keys
+  else
+    vim.b.prev_error_keys = keys
+  end
+end
+
+local function get_error_start_time()
+  return config.lsp_wide and error_start_time or (vim.b.error_start_time or nil)
+end
+
+local function set_error_start_time(time)
+  if config.lsp_wide then
+    error_start_time = time
+  else
+    vim.b.error_start_time = time
+  end
 end
 
 local function update_prev_errors()
+  local bufnr
+  if config.lsp_wide then
+    bufnr = nil
+  else
+    bufnr = 0
+  end
   local current_errors = {}
-  for _, diag in ipairs(vim.diagnostic.get(0, { severity = vim.diagnostic.severity.ERROR })) do
+  for _, diag in ipairs(vim.diagnostic.get(bufnr, { severity = vim.diagnostic.severity.ERROR })) do
     local key = get_diag_key(diag)
     current_errors[key] = true
   end
-  vim.b.prev_error_keys = current_errors
+  set_prev_keys(current_errors)
 end
 
 local function blockInput()
@@ -218,36 +249,45 @@ local function phonk()
 end
 
 local function compare_and_play()
+  local bufnr
+  if config.lsp_wide then
+    bufnr = nil
+  else
+    bufnr = 0
+  end
   local current_errors = {}
-  for _, diag in ipairs(vim.diagnostic.get(0, { severity = vim.diagnostic.severity.ERROR })) do
+  for _, diag in ipairs(vim.diagnostic.get(bufnr, { severity = vim.diagnostic.severity.ERROR })) do
     local key = get_diag_key(diag)
     current_errors[key] = true
   end
 
-  local prev_keys = vim.b.prev_error_keys or {}
+  local prev_keys = get_prev_keys()
   local current_error_count = 0
   for _ in pairs(current_errors) do current_error_count = current_error_count + 1 end
   local prev_error_count = 0
   for _ in pairs(prev_keys) do prev_error_count = prev_error_count + 1 end
 
   if not config.disable_phonk then
+    -- errors -> no errors: check timer, play phonk
     if prev_error_count > 0 and current_error_count == 0 then
-      if config.min_error_duration > 0 and error_start_time then
-        local elapsed = (vim.uv.now() - error_start_time) / 1000
+      local est = get_error_start_time()
+      if config.min_error_duration > 0 and est then
+        local elapsed = (vim.uv.now() - est) / 1000
         if elapsed >= config.min_error_duration then
           phonk()
         end
       elseif config.min_error_duration == 0 then
         phonk()
       end
-      error_start_time = nil
+      set_error_start_time(nil)
     end
   end
 
+  -- no errors -> errors: start timer
   if current_error_count > 0 and prev_error_count == 0 and config.min_error_duration > 0 then
-    error_start_time = vim.uv.now()
+    set_error_start_time(vim.uv.now())
   elseif current_error_count == 0 then
-    error_start_time = nil
+    set_error_start_time(nil)
   end
 
   for key in pairs(current_errors) do
@@ -257,12 +297,17 @@ local function compare_and_play()
     end
   end
 
-  vim.b.prev_error_keys = current_errors
+  set_prev_keys(current_errors)
 end
 
 function M.setup(opts)
   opts = opts or {}
   config = vim.tbl_extend('force', config, opts)
+
+  if type(config.lsp_wide) ~= 'boolean' then
+    vim.notify("brainrot.nvim: lsp_wide must be a boolean. Defaulting to false.", vim.log.levels.WARN)
+    config.lsp_wide = false
+  end
   if config.phonk_time < 0.0 then
     vim.notify("brainrot.nvim: phonk_time cannot be negative. Setting to 0.", vim.log.levels.WARN)
     config.phonk_time = 0.0
@@ -320,43 +365,43 @@ function M.setup(opts)
 end
 
 function M.phonk()
-   phonk()
+  phonk()
 end
 
 function M.boom()
-   playBoom()
+  playBoom()
 end
 
 function M.toggle_boom()
-   config.sound_enabled = not config.sound_enabled
-   local status = config.sound_enabled and 'enabled' or 'disabled'
-   vim.notify('Boom ' .. status, vim.log.levels.INFO)
+  config.sound_enabled = not config.sound_enabled
+  local status = config.sound_enabled and 'enabled' or 'disabled'
+  vim.notify('Boom ' .. status, vim.log.levels.INFO)
 end
 
 function M.enable_boom()
-   config.sound_enabled = true
-   vim.notify('Boom enabled', vim.log.levels.INFO)
+  config.sound_enabled = true
+  vim.notify('Boom enabled', vim.log.levels.INFO)
 end
 
 function M.disable_boom()
-   config.sound_enabled = false
-   vim.notify('Boom disabled', vim.log.levels.INFO)
+  config.sound_enabled = false
+  vim.notify('Boom disabled', vim.log.levels.INFO)
 end
 
 function M.toggle_phonk()
-   config.disable_phonk = not config.disable_phonk
-   local status = config.disable_phonk and 'disabled' or 'enabled'
-   vim.notify('Phonk ' .. status, vim.log.levels.INFO)
+  config.disable_phonk = not config.disable_phonk
+  local status = config.disable_phonk and 'disabled' or 'enabled'
+  vim.notify('Phonk ' .. status, vim.log.levels.INFO)
 end
 
 function M.enable_phonk()
-   config.disable_phonk = false
-   vim.notify('Phonk enabled', vim.log.levels.INFO)
+  config.disable_phonk = false
+  vim.notify('Phonk enabled', vim.log.levels.INFO)
 end
 
 function M.disable_phonk()
-   config.disable_phonk = true
-   vim.notify('Phonk disabled', vim.log.levels.INFO)
+  config.disable_phonk = true
+  vim.notify('Phonk disabled', vim.log.levels.INFO)
 end
 
 return M

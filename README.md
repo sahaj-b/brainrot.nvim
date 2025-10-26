@@ -22,20 +22,23 @@ https://github.com/user-attachments/assets/e68578ee-69e5-4fc6-b45a-493a98e8d225
   opts = {
     -- defaults:
 
-    disable_phonk = false, -- skip phonk/overlay on "no errors"
-    phonk_time = 2.5,      -- seconds the phonk/image overlay stays
-    block_input = true,    -- block input during phonk/overlay
-    dim_level = 60,        -- phonk overlay darkness 0..100
+    disable_phonk = false,    -- skip phonk/overlay on "no errors"
+    phonk_time = 2.5,         -- seconds the phonk/image overlay stays
+    min_error_duration = 0.5, -- minimum seconds errors must exist before phonk triggers (0 = instant)
+    block_input = true,       -- block input during phonk/overlay
+    dim_level = 60,           -- phonk overlay darkness 0..100
 
-    sound_enabled = true,  -- enable sounds
-    image_enabled = true,  -- enable images (needs image.nvim)
+    sound_enabled = true,     -- enable sounds
+    image_enabled = true,     -- enable images (needs image.nvim)
 
-    boom_volume = 50,      -- volume for vine boom sound (0..100)
-    phonk_volume = 50,     -- volume for phonk sound (0..100)
+    boom_volume = 50,         -- volume for vine boom sound (0..100)
+    phonk_volume = 50,        -- volume for phonk sound (0..100)
 
-    boom_sound = nil,      -- custom boom sound path (e.g., "~/sounds/boom.ogg")
-    phonk_dir = nil,       -- custom phonk folder path (e.g., "~/sounds/phonks")
-    image_dir = nil,       -- custom image folder path (e.g., "~/memes/images")
+    boom_sound = nil,         -- custom boom sound path (e.g., "~/sounds/boom.ogg")
+    phonk_dir = nil,          -- custom phonk folder path (e.g., "~/sounds/phonks")
+    image_dir = nil,          -- custom image folder path (e.g., "~/memes/images")
+
+    lsp_wide = false,         -- track errors workspace-wide(get ALL lsp errors)
 
   },
 }
@@ -44,7 +47,12 @@ https://github.com/user-attachments/assets/e68578ee-69e5-4fc6-b45a-493a98e8d225
 ## What it does
 - New error detected: plays Vine Boom once.
 - Went from "had errors" to "no errors": plays a random phonk track and shows a random PNG, with a dim fullscreen overlay (optionally blocking inputs) for `phonk_time` seconds.
-- Only triggers in Normal mode (won’t fire while you’re typing). It updates on `DiagnosticChanged` and on mode changes into/out of Normal.
+- Only triggers in Normal mode (won't fire while you're typing). It updates on `DiagnosticChanged` and on mode changes into/out of Normal.
+
+### lsp_wide mode
+When `lsp_wide = true`, it tracks ALL errors in the workspace, not just the current buffer (if your lsp supports it)
+- Phonk only plays when **ALL** errors in the workspace are cleared, not just the current file.
+- Vine boom plays when a new error appears anywhere in the workspace.
 
 ## Commands
 - `:Brainrot boom`: trigger the vine boom sound now
