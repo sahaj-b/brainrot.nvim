@@ -30,6 +30,7 @@ https://github.com/user-attachments/assets/e68578ee-69e5-4fc6-b45a-493a98e8d225
     phonk_dir = nil,       -- custom phonk folder path (e.g., "~/sounds/phonks")
     image_dir = nil,       -- custom image folder path (e.g., "~/memes/images")
     block_input = true,    -- block input during phonk/overlay
+    dim_level = 60,        -- phonk overlay darkness 0..100
   },
 }
 ```

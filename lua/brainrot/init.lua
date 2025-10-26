@@ -10,6 +10,7 @@ local config = {
   phonk_dir = nil,
   image_dir = nil,
   block_input = false,
+  dim_level = 60,
 }
 
 local audio_player = nil
@@ -197,7 +198,7 @@ local function phonk()
     border = 'none',
   }
   local win = vim.api.nvim_open_win(buf, false, opts)
-  vim.wo[win].winblend = 70
+  vim.wo[win].winblend = 100 - config.dim_level
 
   vim.api.nvim_set_hl(0, 'BrainrotDimOverlay', { bg = '#000000' })
   vim.wo[win].winhl = 'Normal:BrainrotDimOverlay'
@@ -250,6 +251,11 @@ function M.setup(opts)
   if config.volume < 0 or config.volume > 100 then
     vim.notify("brainrot.nvim: Volume must be between 0 and 100. Setting to 0.", vim.log.levels.WARN)
     config.volume = 0
+  end
+
+  if config.dim_level < 0 or config.dim_level > 100 then
+    vim.notify("brainrot.nvim: dim_level must be between 0 and 100. Setting to 70.", vim.log.levels.WARN)
+    config.dim_level = 70
   end
 
   audio_player = detect_audio_player()
