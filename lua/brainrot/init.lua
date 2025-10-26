@@ -2,6 +2,7 @@ local M = {}
 
 local config = {
   phonk_time = 2.5,
+  min_error_duration = 0,
   disable_phonk = false,
   sound_enabled = true,
   image_enabled = true,
@@ -16,6 +17,7 @@ local config = {
 
 local audio_player = nil
 local is_phonk_playing = false
+local error_start_time = nil
 
 local function get_plugin_path()
   local script_path = debug.getinfo(1, 'S').source:sub(2)
@@ -223,12 +225,29 @@ local function compare_and_play()
   end
 
   local prev_keys = vim.b.prev_error_keys or {}
+  local current_error_count = 0
+  for _ in pairs(current_errors) do current_error_count = current_error_count + 1 end
+  local prev_error_count = 0
+  for _ in pairs(prev_keys) do prev_error_count = prev_error_count + 1 end
+
   if not config.disable_phonk then
-    local prev_count = 0
-    for _ in pairs(prev_keys) do prev_count = prev_count + 1 end
-    if prev_count > 0 and next(current_errors) == nil then
-      phonk()
+    if prev_error_count > 0 and current_error_count == 0 then
+      if config.min_error_duration > 0 and error_start_time then
+        local elapsed = (vim.uv.now() - error_start_time) / 1000
+        if elapsed >= config.min_error_duration then
+          phonk()
+        end
+      elseif config.min_error_duration == 0 then
+        phonk()
+      end
+      error_start_time = nil
     end
+  end
+
+  if current_error_count > 0 and prev_error_count == 0 and config.min_error_duration > 0 then
+    error_start_time = vim.uv.now()
+  elseif current_error_count == 0 then
+    error_start_time = nil
   end
 
   for key in pairs(current_errors) do
@@ -247,6 +266,11 @@ function M.setup(opts)
   if config.phonk_time < 0.0 then
     vim.notify("brainrot.nvim: phonk_time cannot be negative. Setting to 0.", vim.log.levels.WARN)
     config.phonk_time = 0.0
+  end
+
+  if config.min_error_duration < 0 then
+    vim.notify("brainrot.nvim: min_error_duration cannot be negative. Setting to 0.", vim.log.levels.WARN)
+    config.min_error_duration = 0
   end
 
   if config.boom_volume < 0 or config.boom_volume > 100 then
