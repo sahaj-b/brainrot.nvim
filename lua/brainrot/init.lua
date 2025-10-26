@@ -5,7 +5,8 @@ local config = {
   disable_phonk = false,
   sound_enabled = true,
   image_enabled = true,
-  volume = 50,
+  boom_volume = 50,
+  phonk_volume = 50,
   boom_sound = nil,
   phonk_dir = nil,
   image_dir = nil,
@@ -98,7 +99,7 @@ local function playBoom()
   if not config.sound_enabled or not audio_player then return end
   local media_path = config.boom_sound or (get_plugin_path() .. '/boom.ogg')
   media_path = vim.fn.expand(media_path)
-  play_with_player(audio_player, media_path, config.volume, nil)
+  play_with_player(audio_player, media_path, config.boom_volume, nil)
 end
 
 local function playRandomPhonk()
@@ -115,7 +116,7 @@ local function playRandomPhonk()
   end
   local idx = math.random(#files)
   local path = files[idx]
-  play_with_player(audio_player, path, config.volume, config.phonk_time)
+  play_with_player(audio_player, path, config.phonk_volume, config.phonk_time)
   vim.defer_fn(function()
     is_phonk_playing = false
   end, config.phonk_time * 1000)
@@ -248,9 +249,14 @@ function M.setup(opts)
     config.phonk_time = 0.0
   end
 
-  if config.volume < 0 or config.volume > 100 then
-    vim.notify("brainrot.nvim: Volume must be between 0 and 100. Setting to 0.", vim.log.levels.WARN)
-    config.volume = 0
+  if config.boom_volume < 0 or config.boom_volume > 100 then
+    vim.notify("brainrot.nvim: boom_volume must be between 0 and 100. Setting to 50.", vim.log.levels.WARN)
+    config.boom_volume = 50
+  end
+
+  if config.phonk_volume < 0 or config.phonk_volume > 100 then
+    vim.notify("brainrot.nvim: phonk_volume must be between 0 and 100. Setting to 50.", vim.log.levels.WARN)
+    config.phonk_volume = 50
   end
 
   if config.dim_level < 0 or config.dim_level > 100 then
