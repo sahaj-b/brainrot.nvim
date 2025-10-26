@@ -29,13 +29,14 @@ https://github.com/user-attachments/assets/e68578ee-69e5-4fc6-b45a-493a98e8d225
     boom_sound = nil,      -- custom boom sound path (e.g., "~/sounds/boom.ogg")
     phonk_dir = nil,       -- custom phonk folder path (e.g., "~/sounds/phonks")
     image_dir = nil,       -- custom image folder path (e.g., "~/memes/images")
+    block_input = true,    -- block input during phonk/overlay
   },
 }
 ```
 
 ## What it does
 - New error detected: plays Vine Boom once.
-- Went from "had errors" to "no errors": plays a random phonk track and shows a random PNG, with a dim fullscreen overlay for `phonk_time` seconds.
+- Went from "had errors" to "no errors": plays a random phonk track and shows a random PNG, with a dim fullscreen overlay (optionally blocking inputs) for `phonk_time` seconds.
 - Only triggers in Normal mode (won’t fire while you’re typing). It updates on `DiagnosticChanged` and on mode changes into/out of Normal.
 
 ## Commands
