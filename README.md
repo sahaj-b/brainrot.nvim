@@ -50,8 +50,34 @@ https://github.com/user-attachments/assets/e68578ee-69e5-4fc6-b45a-493a98e8d225
 - `:Brainrot boom`: trigger the vine boom sound now
 - `:Brainrot phonk`: trigger the overlay + random phonk now
 
+## API Usage
+You can use brainrot's functions directly in your config or other plugins. Get the module and call `.phonk()` or `.boom()`:
+
+```lua
+local brainrot = require('brainrot')
+
+-- Trigger the phonk overlay + random phonk sound
+brainrot.phonk()
+
+-- Trigger vine boom sound
+brainrot.boom()
+```
+
+### Example: Phonk on file save
+```lua
+-- inside init.lua
+vim.api.nvim_create_autocmd('BufWritePost', {
+  callback = function()
+    require('brainrot').phonk()
+  end,
+})
+```
+
 ## Known Issues
 - When pressing `<CR>` (Enter) inside a bracket pair like `{|}` to auto-expand into a block (when using an autopair plugin), it will detect errors and play vine boom. Workaround is to disable the auto-expand (eg: `map_cr = false` in `nvim-autopairs`).
 
 ## ...WHY?
 [coz why not](https://x.com/sahaj__b/status/1981749009350811966)
+
+## License
+MIT
