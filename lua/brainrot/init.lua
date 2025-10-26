@@ -17,7 +17,8 @@ local config = {
 }
 
 local audio_player = nil
-local is_phonk_playing = false
+local is_phonk_celebrating = false
+local last_phonk_time = 0
 local error_start_time = nil
 
 local function get_plugin_path()
@@ -106,23 +107,18 @@ local function playBoom()
 end
 
 local function playRandomPhonk()
-  if is_phonk_playing or not config.sound_enabled or not audio_player then return end
-  is_phonk_playing = true
+  if not config.sound_enabled or not audio_player then return end
   local media_path = config.phonk_dir or (get_plugin_path() .. '/phonks')
   media_path = vim.fn.expand(media_path)
   local glob_pattern = media_path .. '/*.{mp3,ogg,wav,flac,m4a,aac,opus}'
   local files = vim.fn.glob(glob_pattern, false, true)
   if #files == 0 then
     vim.notify("Error: No audio files found in " .. media_path .. " directory.", vim.log.levels.ERROR)
-    is_phonk_playing = false
     return
   end
   local idx = math.random(#files)
   local path = files[idx]
   play_with_player(audio_player, path, config.phonk_volume, config.phonk_time)
-  vim.defer_fn(function()
-    is_phonk_playing = false
-  end, config.phonk_time * 1000)
 end
 
 local function showRandomImage()
@@ -164,7 +160,9 @@ local function showRandomImage()
   end
 
   img:render()
-  vim.defer_fn(function() img:clear() end, config.phonk_time * 1000)
+  vim.defer_fn(function()
+    img:clear()
+  end, config.phonk_time * 1000)
 end
 
 local function get_diag_key(diag)
@@ -220,6 +218,13 @@ local function blockInput()
 end
 
 local function phonk()
+  local now = vim.uv.now()
+  if last_phonk_time > 0 and (now - last_phonk_time) < 2500 then return end
+  if is_phonk_celebrating then return end
+
+  last_phonk_time = now
+  is_phonk_celebrating = true
+
   local buf = vim.api.nvim_create_buf(false, true)
   vim.bo[buf].bufhidden = 'wipe'
   local opts = {
@@ -245,6 +250,7 @@ local function phonk()
       vim.api.nvim_win_close(win, true)
     end
     vim.cmd('redraw!')
+    is_phonk_celebrating = false
   end, config.phonk_time * 1000)
 end
 
