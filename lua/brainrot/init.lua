@@ -82,8 +82,8 @@ local function play_with_player(player, path, volume, timeout)
   table.insert(args, 1, cmd)
 
   if timeout and jit.os ~= 'Windows' then
-    table.insert(args, 1, tostring(timeout))
-    table.insert(args, 1, "timeout")
+    table.insert(args, 2, tostring(timeout))
+    table.insert(args, 2, "timeout")
   end
 
   vim.system(args, { detach = true })
