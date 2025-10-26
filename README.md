@@ -48,10 +48,16 @@ https://github.com/user-attachments/assets/e68578ee-69e5-4fc6-b45a-493a98e8d225
 
 ## Commands
 - `:Brainrot boom`: trigger the vine boom sound now
+- `:Brainrot boom toggle`: toggle boom sounds on/off
+- `:Brainrot boom enable`: enable boom sounds
+- `:Brainrot boom disable`: disable boom sounds
 - `:Brainrot phonk`: trigger the overlay + random phonk now
+- `:Brainrot phonk toggle`: toggle auto-phonk on/off
+- `:Brainrot phonk enable`: enable auto-phonk
+- `:Brainrot phonk disable`: disable auto-phonk
 
 ## API Usage
-You can use brainrot's functions directly in your config or other plugins. Get the module and call `.phonk()` or `.boom()`:
+You can use brainrot's functions directly in your config or other plugins. Get the module and call any of these:
 
 ```lua
 local brainrot = require('brainrot')
@@ -61,6 +67,16 @@ brainrot.phonk()
 
 -- Trigger vine boom sound
 brainrot.boom()
+
+-- Toggle/enable/disable boom sounds
+brainrot.toggle_boom()
+brainrot.enable_boom()
+brainrot.disable_boom()
+
+-- Toggle/enable/disable auto-phonk
+brainrot.toggle_phonk()
+brainrot.enable_phonk()
+brainrot.disable_phonk()
 ```
 
 ### Example: Phonk on file save

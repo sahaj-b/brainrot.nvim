@@ -296,11 +296,43 @@ function M.setup(opts)
 end
 
 function M.phonk()
-  phonk()
+   phonk()
 end
 
 function M.boom()
-  playBoom()
+   playBoom()
+end
+
+function M.toggle_boom()
+   config.sound_enabled = not config.sound_enabled
+   local status = config.sound_enabled and 'enabled' or 'disabled'
+   vim.notify('Boom ' .. status, vim.log.levels.INFO)
+end
+
+function M.enable_boom()
+   config.sound_enabled = true
+   vim.notify('Boom enabled', vim.log.levels.INFO)
+end
+
+function M.disable_boom()
+   config.sound_enabled = false
+   vim.notify('Boom disabled', vim.log.levels.INFO)
+end
+
+function M.toggle_phonk()
+   config.disable_phonk = not config.disable_phonk
+   local status = config.disable_phonk and 'disabled' or 'enabled'
+   vim.notify('Phonk ' .. status, vim.log.levels.INFO)
+end
+
+function M.enable_phonk()
+   config.disable_phonk = false
+   vim.notify('Phonk enabled', vim.log.levels.INFO)
+end
+
+function M.disable_phonk()
+   config.disable_phonk = true
+   vim.notify('Phonk disabled', vim.log.levels.INFO)
 end
 
 return M
