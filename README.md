@@ -20,11 +20,15 @@ https://github.com/user-attachments/assets/e68578ee-69e5-4fc6-b45a-493a98e8d225
   'sahaj-b/brainrot.nvim',
   event = 'VeryLazy',
   opts = {
+    -- defaults:
     phonk_time = 2.5,      -- seconds the phonk/image overlay stays
     disable_phonk = false, -- skip phonk/overlay on "no errors"
     sound_enabled = true,  -- enable sounds
     image_enabled = true,  -- enable images (needs image.nvim)
     volume = 50,           -- 0..100
+    boom_sound = nil,      -- custom boom sound path (e.g., "~/sounds/boom.ogg")
+    phonk_dir = nil,       -- custom phonk folder path (e.g., "~/sounds/phonks")
+    image_dir = nil,       -- custom image folder path (e.g., "~/memes/images")
   },
 }
 ```

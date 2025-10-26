@@ -6,6 +6,9 @@ local config = {
   sound_enabled = true,
   image_enabled = true,
   volume = 50,
+  boom_sound = nil,
+  phonk_dir = nil,
+  image_dir = nil,
 }
 
 local audio_player = nil
@@ -90,69 +93,72 @@ local function play_with_player(player, path, volume, timeout)
 end
 
 local function playBoom()
-  if not config.sound_enabled or not audio_player then return end
-  local media_path = get_plugin_path() .. '/boom.ogg'
-  play_with_player(audio_player, media_path, config.volume, nil)
+   if not config.sound_enabled or not audio_player then return end
+   local media_path = config.boom_sound or (get_plugin_path() .. '/boom.ogg')
+   media_path = vim.fn.expand(media_path)
+   play_with_player(audio_player, media_path, config.volume, nil)
 end
 
 local function playRandomPhonk()
-   if is_phonk_playing or not config.sound_enabled or not audio_player then return end
-   is_phonk_playing = true
-   local media_path = get_plugin_path() .. '/phonks'
-   local glob_pattern = media_path .. '/*'
-   local files = vim.fn.glob(glob_pattern, false, true)
-   if #files == 0 then
-     vim.notify("Error: No sound files found in " .. media_path .. " directory.", vim.log.levels.ERROR)
-     is_phonk_playing = false
-     return
-   end
-   local idx = math.random(#files)
-   local path = files[idx]
-   play_with_player(audio_player, path, config.volume, config.phonk_time)
-   vim.defer_fn(function()
-     is_phonk_playing = false
-   end, config.phonk_time * 1000)
+    if is_phonk_playing or not config.sound_enabled or not audio_player then return end
+    is_phonk_playing = true
+    local media_path = config.phonk_dir or (get_plugin_path() .. '/phonks')
+    media_path = vim.fn.expand(media_path)
+    local glob_pattern = media_path .. '/*.{mp3,ogg,wav,flac,m4a,aac,opus}'
+    local files = vim.fn.glob(glob_pattern, false, true)
+    if #files == 0 then
+      vim.notify("Error: No audio files found in " .. media_path .. " directory.", vim.log.levels.ERROR)
+      is_phonk_playing = false
+      return
+    end
+    local idx = math.random(#files)
+    local path = files[idx]
+    play_with_player(audio_player, path, config.volume, config.phonk_time)
+    vim.defer_fn(function()
+      is_phonk_playing = false
+    end, config.phonk_time * 1000)
 end
 
 local function showRandomImage()
-  if not config.image_enabled then return end
-  local media_path = get_plugin_path() .. '/images'
-  local glob_pattern = media_path .. '/*.png'
-  local files = vim.fn.glob(glob_pattern, false, true)
-  if #files == 0 then
-    vim.notify("Error: No PNG files found in " .. media_path .. " directory.", vim.log.levels.ERROR)
-    return
-  end
+   if not config.image_enabled then return end
+   local media_path = config.image_dir or (get_plugin_path() .. '/images')
+   media_path = vim.fn.expand(media_path)
+   local glob_pattern = media_path .. '/*.{png,jpg,jpeg,gif,webp}'
+   local files = vim.fn.glob(glob_pattern, false, true)
+   if #files == 0 then
+     vim.notify("Error: No image files found in " .. media_path .. " directory.", vim.log.levels.ERROR)
+     return
+   end
 
-  local ok, image_module = pcall(require, 'image')
-  if not ok then
-    vim.notify("image.nvim not installed. Install it to see images.", vim.log.levels.WARN)
-    return
-  end
+   local ok, image_module = pcall(require, 'image')
+   if not ok then
+     vim.notify("image.nvim not installed. Install it to see images.", vim.log.levels.WARN)
+     return
+   end
 
-  local idx = math.random(#files)
-  local path = files[idx]
-  local w, h = 30, 30
-  local wh = vim.api.nvim_win_get_height(0)
-  local x = math.floor((vim.o.columns - w) / 2)
-  local y = math.floor(wh * 0.6)
+   local idx = math.random(#files)
+   local path = files[idx]
+   local w, h = 30, 30
+   local wh = vim.api.nvim_win_get_height(0)
+   local x = math.floor((vim.o.columns - w) / 2)
+   local y = math.floor(wh * 0.6)
 
 
-  local img = image_module.from_file(path, {
-    x = x,
-    y = y,
-    width = w,
-    height = h,
-    window = nil,
-  })
+   local img = image_module.from_file(path, {
+     x = x,
+     y = y,
+     width = w,
+     height = h,
+     window = nil,
+   })
 
-  if not img then
-    vim.notify("image.nvim failed to load image", vim.log.levels.ERROR)
-    return
-  end
+   if not img then
+     vim.notify("image.nvim failed to load image", vim.log.levels.ERROR)
+     return
+   end
 
-  img:render()
-  vim.defer_fn(function() img:clear() end, config.phonk_time * 1000)
+   img:render()
+   vim.defer_fn(function() img:clear() end, config.phonk_time * 1000)
 end
 
 local function get_diag_key(diag)
