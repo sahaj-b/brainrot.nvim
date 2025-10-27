@@ -38,9 +38,9 @@ local function detect_audio_player()
     if is_cmd_available('ffplay') then return 'ffplay' end
     if is_cmd_available('mpv') then return 'mpv' end
   elseif os == 'OSX' then
-    if is_cmd_available('afplay') then return 'afplay' end
     if is_cmd_available('ffplay') then return 'ffplay' end
     if is_cmd_available('mpv') then return 'mpv' end
+    if is_cmd_available('afplay') then return 'afplay' end
   elseif os == 'Windows' then
     if is_cmd_available('ffplay') then return 'ffplay' end
     if is_cmd_available('mpv') then return 'mpv' end
