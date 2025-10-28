@@ -37,11 +37,7 @@ local function detect_audio_player()
     if is_cmd_available('paplay') then return 'paplay' end
     if is_cmd_available('ffplay') then return 'ffplay' end
     if is_cmd_available('mpv') then return 'mpv' end
-  elseif os == 'OSX' then
-    if is_cmd_available('ffplay') then return 'ffplay' end
-    if is_cmd_available('mpv') then return 'mpv' end
-    if is_cmd_available('afplay') then return 'afplay' end
-  elseif os == 'Windows' then
+  elseif os == 'OSX' or os == 'Windows' then
     if is_cmd_available('ffplay') then return 'ffplay' end
     if is_cmd_available('mpv') then return 'mpv' end
   else
@@ -52,33 +48,32 @@ local function detect_audio_player()
 end
 
 local function play_with_player(player, path, volume, timeout)
-  local cmd
+  local cmd = player
   local args = {}
+  local full_cmd = {}
+
   if player == "paplay" then
-    cmd = "paplay"
-    table.insert(args, "--volume=" .. math.floor((volume / 100) * 65536))
-    table.insert(args, path)
+    args = { "--volume=" .. math.floor((volume / 100) * 65536), path }
+    if timeout then
+      full_cmd = { "timeout", tostring(timeout), cmd, unpack(args) }
+    else
+      full_cmd = { cmd, unpack(args) }
+    end
   elseif player == "ffplay" then
-    cmd = "ffplay"
-    table.insert(args, "-autoexit")
-    table.insert(args, "-nodisp")
-    table.insert(args, "-v")
-    table.insert(args, "quiet")
-    table.insert(args, "-volume")
-    table.insert(args, tostring(volume))
+    args = { "-autoexit", "-nodisp", "-v", "quiet", "-volume", tostring(volume) }
+    if timeout then
+      table.insert(args, "-t")
+      table.insert(args, tostring(timeout))
+    end
     table.insert(args, path)
-  elseif player == "afplay" then
-    cmd = "afplay"
-    table.insert(args, "-v")
-    table.insert(args, tostring(volume / 100))
-    table.insert(args, path)
+    full_cmd = { cmd, unpack(args) }
   elseif player == "mpv" then
-    cmd = "mpv"
-    table.insert(args, "--no-video")
-    table.insert(args, "--no-terminal")
-    table.insert(args, "--no-config")
-    table.insert(args, "--volume=" .. volume)
+    args = { "--no-video", "--no-terminal", "--no-config", "--volume=" .. volume }
+    if timeout then
+      table.insert(args, "--length=" .. tostring(timeout))
+    end
     table.insert(args, path)
+    full_cmd = { cmd, unpack(args) }
   else
     vim.notify(player .. " isn't supported", vim.log.levels.ERROR)
     return
@@ -88,15 +83,8 @@ local function play_with_player(player, path, volume, timeout)
     vim.notify(player .. " not found.", vim.log.levels.ERROR)
     return
   end
-
-  table.insert(args, 1, cmd)
-
-  if timeout and jit.os ~= 'Windows' then
-    table.insert(args, 1, tostring(timeout))
-    table.insert(args, 1, "timeout")
-  end
-
-  vim.system(args, { detach = true })
+  vim.notify(table.concat(full_cmd, " "), vim.log.levels.DEBUG)
+  vim.system(full_cmd, { detach = true })
 end
 
 local function playBoom()
