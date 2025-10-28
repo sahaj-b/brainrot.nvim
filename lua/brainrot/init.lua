@@ -83,7 +83,6 @@ local function play_with_player(player, path, volume, timeout)
     vim.notify(player .. " not found.", vim.log.levels.ERROR)
     return
   end
-  vim.notify(table.concat(full_cmd, " "), vim.log.levels.DEBUG)
   vim.system(full_cmd, { detach = true })
 end
 
