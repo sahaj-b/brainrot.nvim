@@ -10,8 +10,7 @@ https://github.com/user-attachments/assets/e68578ee-69e5-4fc6-b45a-493a98e8d225
 - Neovim 0.9+
 - Audio player
   - Linux: `paplay`, `ffplay`, or `mpv`
-  - macOS: `afplay`, `ffplay`, or `mpv`
-  - Windows: `ffplay` or `mpv`
+  - macOS/Windows: `ffplay`, or `mpv`
 - [image.nvim](https://github.com/3rd/image.nvim) (Optional, for images)
 
 ## Install (lazy.nvim)
